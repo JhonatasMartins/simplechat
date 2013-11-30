@@ -1,6 +1,7 @@
 package br.upis.chat.client;
 
 import br.upis.chat.Message;
+import br.upis.chat.MessageType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -9,9 +10,10 @@ import java.io.ObjectInputStream;
  *
  * @author jhonatas
  */
-public class ClientReader implements Runnable{
+public class ClientReader implements Runnable, IStopRunnable{
     
     private ObjectInputStream in;
+    private boolean stop = false;
     
     public ClientReader(InputStream in){
         try{
@@ -24,22 +26,32 @@ public class ClientReader implements Runnable{
     @Override
     public void run() {
       
-        while(true){
-            
-            Object ob = null;
-            
-            try{
+        try{
+            while(true){
+
+                Object ob = null;
+
+                if(stop)
+                     break; 
+
                 if((ob = in.readObject()) != null){
                     Message m = (Message)ob;
-                    System.out.printf("\n%s diz : %s", m.getUser(), m.getMessage());
+                    
+                    if(m.getType() == MessageType.sending)
+                       System.out.printf("\n%s diz : %s \n", m.getUser(), m.getMessage());
                 }
-            }catch(Exception e){
-                e.printStackTrace();
             }
             
-            
+            in.close();
+        }catch(Exception e){
+            e.printStackTrace();
         }
         
+    }
+
+    @Override
+    public void stop(){  
+       stop = true;
     }
     
 }

@@ -1,18 +1,12 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.upis.chat.client;
 
 import br.upis.chat.Config;
 import br.upis.chat.Message;
 import br.upis.chat.MessageType;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,10 +14,13 @@ import java.util.concurrent.Executors;
  *
  * @author jhonatas
  */
-public class Client {
+public class Client implements ICloseListener{
  
     private String username;
     private ExecutorService exec;
+    private ClientReader reader;
+    private ClientWriter writer;
+    private Socket socket;
     
     public Client(String username){
         this.username = username;
@@ -32,32 +29,40 @@ public class Client {
     
     public void connect(){
         try{
-            Socket socket = new Socket(Config.HOST, Config.PORT);
+            socket = new Socket(Config.HOST, Config.PORT);
             
             OutputStream os = socket.getOutputStream();
             os.flush();
             
             ObjectOutputStream oos = new ObjectOutputStream(os);
-            oos.writeObject(new Message(username, "", MessageType.connect));
+            oos.writeObject(new Message(username, MessageType.connect));
 
-            ClientReader reader = new ClientReader(socket.getInputStream());
-            exec.submit(reader);
+            writer = new ClientWriter(username, oos, this);
+            exec.execute(writer);
             
-            Scanner scanner = new Scanner(System.in);
-            
-            while(true){
-                String str = scanner.nextLine();    
-                oos.flush();
-                oos.writeObject(new Message(username, str, MessageType.sending));
-            }
-            
+            reader = new ClientReader(socket.getInputStream());
+            exec.execute(reader);
         }catch(IOException e){
             e.printStackTrace();
         }
+   
+    }
+    
+    @Override
+    public void close(){        
+        try{            
+            reader.stop();
+            writer.stop();
+            
+            socket.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
         
+        exec.shutdownNow();
     }
     
     public static void main(String... args){
-        new Client("Carol").connect();
+        new Client("Leonardo").connect();
     }
 }

@@ -11,10 +11,20 @@ public class Message implements Serializable{
     private String user;
     private Object message;
     private MessageType type;
-    
+        
     public Message(String user, Object message, MessageType type){
         this.user = user;
         this.message = message;
+        this.type = type;
+    }
+    
+    public Message(Object message, MessageType type){
+        this.message = message;
+        this.type = type;
+    }
+    
+    public Message(String user, MessageType type){
+        this.user = user;
         this.type = type;
     }
 

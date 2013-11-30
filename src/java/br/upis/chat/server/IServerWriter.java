@@ -8,6 +8,9 @@ import br.upis.chat.Message;
  */
 public interface IServerWriter {
     
-    public void writerAllsUsers(Message message);
+    public void sendAllsUsers(Message message);
     
+    public void list(ClientData client);
+    
+    public void close(ClientData client);
 }

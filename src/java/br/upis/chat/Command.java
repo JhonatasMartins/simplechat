@@ -4,10 +4,9 @@ package br.upis.chat;
  *
  * @author jhonatas
  */
-public enum MessageType {
+public enum Command {
     
-    connect,
-    sending,
-    command
+    quit,
+    list
     
 }
